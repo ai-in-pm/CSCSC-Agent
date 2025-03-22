@@ -1,5 +1,8 @@
 # AI-Driven Earned Value Management (EVM) Agent
 
+![CSCSC](https://github.com/user-attachments/assets/c98a1cb0-536f-449f-b61d-cfd1caa8b571)
+
+
 ## Overview
 
 The EVM AI Agent is an intelligent system designed to automate and enhance project performance analysis using Earned Value Management methodologies. This agent combines EVM calculations with AI/ML analytics to provide real-time insights, forecasts, and natural language reporting for project managers and stakeholders. Designed as a "Physical AI" solution, it integrates with real-world project environments to deliver practical value across all areas of earned value management.
