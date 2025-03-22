@@ -1,6 +1,6 @@
 # AI-Driven Earned Value Management (EVM) Agent
 
-//github.com/user-attachments/assets/c98a1cb0-536f-449f-b61d-cfd1caa8b571)
+
 
 
 
