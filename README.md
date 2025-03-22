@@ -1,6 +1,11 @@
 # AI-Driven Earned Value Management (EVM) Agent
 
-![CSCSC](https://github.com/user-attachments/assets/c98a1cb0-536f-449f-b61d-cfd1caa8b571)
+![CSCSC](https:
+
+Uploading AI Agents using MS Project.mp4…
+
+//github.com/user-attachments/assets/c98a1cb0-536f-449f-b61d-cfd1caa8b571)
+
 
 
 ## Overview
