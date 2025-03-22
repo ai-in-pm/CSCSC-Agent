@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSCSC AI Agent Demo - Real-time Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 50px;
+        }
+        .agent-card {
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .agent-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .agent-card.active {
+            border: 2px solid #198754;
+        }
+        .card-header {
+            font-weight: bold;
+        }
+        .badge {
+            margin-left: 10px;
+        }
+        .progress {
+            height: 10px;
+            margin-top: 10px;
+        }
+        .log-container {
+            height: 300px;
+            overflow-y: scroll;
+            background-color: #343a40;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        .console-line {
+            margin: 0;
+            padding: 2px 0;
+        }
+        .thinking {
+            font-style: italic;
+            color: #ffc107;
+        }
+        .task-complete {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .agent-interaction {
+            color: #17a2b8;
+        }
+        .architecture-container {
+            overflow-x: auto;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        pre {
+            margin: 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .evm-metric {
+            border-left: 4px solid #0d6efd;
+            padding-left: 10px;
+            margin-bottom: 15px;
+        }
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        #analysis-results {
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #198754;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-4 text-center">CSCSC AI Agent Demo</h1>
+                <p class="lead text-center">Real-time visualization of multi-agent collaboration for physical EVM analysis</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Analysis Progress
+                    </div>
+                    <div class="card-body">
+                        <h5 id="current-analysis">Initializing...</h5>
+                        <div class="progress">
+                            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge bg-secondary" id="task-count">0/0 Tasks</span>
+                            <span class="badge bg-primary" id="agent-count">0 Agents</span>
+                            <span class="badge bg-success" id="completed-count">0 Completed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        Agent Status
+                    </div>
+                    <div class="card-body" id="agent-status">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Environmental Impact Analyst</span>
+                            <span class="badge bg-secondary">Idle</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Supply Chain Manager</span>
+                            <span class="badge bg-secondary">Idle</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Site Progress Verifier</span>
+                            <span class="badge bg-secondary">Idle</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Risk Assessment Specialist</span>
+                            <span class="badge bg-secondary">Idle</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>EVM Integration Specialist</span>
+                            <span class="badge bg-secondary">Idle</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        Analysis Console Log
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="log-container" id="console-log">
+                            <p class="console-line">Initializing CSCSC AI Agent demo...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        Analysis Results
+                    </div>
+                    <div class="card-body">
+                        <div id="analysis-results">
+                            Analysis has not yet completed. Results will appear here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        Earned Value Management Charts
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="evm-metrics-chart" height="300"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="variance-chart" height="300"></canvas>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="evm-metric">
+                                    <h5>Schedule Performance Index (SPI)</h5>
+                                    <div class="progress">
+                                        <div id="spi-progress" class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">0.85</div>
+                                    </div>
+                                    <small class="text-muted">Values < 1.0 indicate behind schedule</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="evm-metric">
+                                    <h5>Cost Performance Index (CPI)</h5>
+                                    <div class="progress">
+                                        <div id="cpi-progress" class="progress-bar" role="progressbar" style="width: 78%" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100">0.78</div>
+                                    </div>
+                                    <small class="text-muted">Values < 1.0 indicate over budget</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <span>Predictive Forecasting & Sensitivity Analysis</span>
+                        <div>
+                            <button class="btn btn-sm btn-light" id="run-forecast">Run Forecast</button>
+                            <button class="btn btn-sm btn-warning ms-2" id="run-sensitivity">Sensitivity Analysis</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="nav nav-tabs mb-3" id="forecast-tabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="baseline-tab" data-bs-toggle="tab" data-bs-target="#baseline-content" type="button" role="tab" aria-controls="baseline-content" aria-selected="true">Baseline</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="scenarios-tab" data-bs-toggle="tab" data-bs-target="#scenarios-content" type="button" role="tab" aria-controls="scenarios-content" aria-selected="false">Scenarios</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="anomalies-tab" data-bs-toggle="tab" data-bs-target="#anomalies-content" type="button" role="tab" aria-controls="anomalies-content" aria-selected="false">Anomalies</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="forecast-tab-content">
+                                    <div class="tab-pane fade show active" id="baseline-content" role="tabpanel" aria-labelledby="baseline-tab">
+                                        <canvas id="forecast-chart" height="300"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="scenarios-content" role="tabpanel" aria-labelledby="scenarios-tab">
+                                        <canvas id="scenarios-chart" height="300"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="anomalies-content" role="tabpanel" aria-labelledby="anomalies-tab">
+                                        <canvas id="anomalies-chart" height="300"></canvas>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mt-2">
+                                    <strong>Forecast Accuracy:</strong> <span id="forecast-accuracy">97.3%</span> | 
+                                    <strong>Confidence Interval:</strong> <span id="confidence-interval">±4.2%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="nav nav-tabs mb-3" id="sensitivity-tabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="elasticity-tab" data-bs-toggle="tab" data-bs-target="#elasticity-content" type="button" role="tab" aria-controls="elasticity-content" aria-selected="true">Elasticity</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="correlation-tab" data-bs-toggle="tab" data-bs-target="#correlation-content" type="button" role="tab" aria-controls="correlation-content" aria-selected="false">Correlation</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-content" type="button" role="tab" aria-controls="network-content" aria-selected="false">Network</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="sensitivity-tab-content">
+                                    <div class="tab-pane fade show active" id="elasticity-content" role="tabpanel" aria-labelledby="elasticity-tab">
+                                        <div id="sensitivity-results" class="p-3" style="background-color: #f8f9fa; border-radius: 5px; height: 350px; overflow-y: auto;">
+                                            <h5>Sensitivity Analysis Results</h5>
+                                            <p class="text-muted">Click "Sensitivity Analysis" to evaluate how variations in input parameters affect project outcomes.</p>
+                                            <div id="sensitivity-placeholder"></div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="correlation-content" role="tabpanel" aria-labelledby="correlation-tab">
+                                        <canvas id="correlation-chart" height="350"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="network-content" role="tabpanel" aria-labelledby="network-tab">
+                                        <div id="network-chart" style="height: 350px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span>Risk Detection & Monte Carlo Simulation</span>
+                        <button class="btn btn-sm btn-light" id="run-simulation">Run Simulation</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <ul class="nav nav-tabs mb-3" id="monte-carlo-tabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="risks-tab" data-bs-toggle="tab" data-bs-target="#risks-content" type="button" role="tab" aria-controls="risks-content" aria-selected="true">Risks</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="critical-path-tab" data-bs-toggle="tab" data-bs-target="#critical-path-content" type="button" role="tab" aria-controls="critical-path-content" aria-selected="false">Critical Path</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="regression-tab" data-bs-toggle="tab" data-bs-target="#regression-content" type="button" role="tab" aria-controls="regression-content" aria-selected="false">Risk Score</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="monte-carlo-tab-content">
+                                    <div class="tab-pane fade show active" id="risks-content" role="tabpanel" aria-labelledby="risks-tab">
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-dark text-white">Detected Risks</div>
+                                            <div class="card-body p-0">
+                                                <table class="table table-sm table-hover mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Risk Factor</th>
+                                                            <th>Impact</th>
+                                                            <th>Confidence</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="risk-table">
+                                                        <tr>
+                                                            <td>Supply Chain Disruption</td>
+                                                            <td><span class="badge bg-danger">High</span></td>
+                                                            <td>92%</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Weather Event (Flooding)</td>
+                                                            <td><span class="badge bg-warning">Medium</span></td>
+                                                            <td>78%</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Regulatory Compliance</td>
+                                                            <td><span class="badge bg-warning">Medium</span></td>
+                                                            <td>85%</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="critical-path-content" role="tabpanel" aria-labelledby="critical-path-tab">
+                                        <canvas id="critical-path-chart" height="240"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="regression-content" role="tabpanel" aria-labelledby="regression-tab">
+                                        <canvas id="regression-chart" height="240"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <ul class="nav nav-tabs mb-3" id="simulation-tabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="distribution-tab" data-bs-toggle="tab" data-bs-target="#distribution-content" type="button" role="tab" aria-controls="distribution-content" aria-selected="true">Distribution</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="s-curve-tab" data-bs-toggle="tab" data-bs-target="#s-curve-content" type="button" role="tab" aria-controls="s-curve-content" aria-selected="false">S-Curve</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="simulation-tab-content">
+                                    <div class="tab-pane fade show active" id="distribution-content" role="tabpanel" aria-labelledby="distribution-tab">
+                                        <canvas id="monte-carlo-chart" height="240"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="s-curve-content" role="tabpanel" aria-labelledby="s-curve-tab">
+                                        <canvas id="s-curve-chart" height="240"></canvas>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <div>
+                                        <strong>Simulation Runs:</strong> 5,000
+                                    </div>
+                                    <div>
+                                        <strong>P50 Completion:</strong> <span id="p50-completion">Oct 15, 2025</span>
+                                    </div>
+                                    <div>
+                                        <strong>P80 Completion:</strong> <span id="p80-completion">Nov 22, 2025</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // Register required Chart.js plugins
+        Chart.register(ChartDataLabels);
+        
+        // Sample data for demonstration
+        const agentStatuses = {
+            "Environmental Impact Analyst": "Idle",
+            "Supply Chain Manager": "Idle",
+            "Site Progress Verifier": "Idle",
+            "Risk Assessment Specialist": "Idle",
+            "EVM Integration Specialist": "Idle"
+        };
+
+        let taskCount = 0;
+        let completedTasks = 0;
+        let progress = 0;
+
+        // Function to update agent status
+        function updateAgentStatus(agent, status) {
+            agentStatuses[agent] = status;
+            const statusHTML = Object.entries(agentStatuses).map(([agent, status]) => {
+                let badgeClass = "bg-secondary";
+                if (status === "Working") badgeClass = "bg-warning";
+                if (status === "Completed") badgeClass = "bg-success";
+                return `
+                <div class="d-flex justify-content-between mb-2">
+                    <span>${agent}</span>
+                    <span class="badge ${badgeClass}">${status}</span>
+                </div>`;
+            }).join('');
+            document.getElementById('agent-status').innerHTML = statusHTML;
+        }
+
+        // Function to add log entry
+        function addLogEntry(message, type = "info") {
+            const logContainer = document.getElementById('console-log');
+            const entry = document.createElement('p');
+            entry.className = `console-line ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Function to update progress
+        function updateProgress(currentAnalysis, progressPercent) {
+            document.getElementById('current-analysis').textContent = currentAnalysis;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('progress-bar').setAttribute('aria-valuenow', progressPercent);
+            progress = progressPercent;
+        }
+
+        // Function to update task counts
+        function updateTaskCounts(total, completed, agentCount) {
+            document.getElementById('task-count').textContent = `${completed}/${total} Tasks`;
+            document.getElementById('agent-count').textContent = `${agentCount} Agents`;
+            document.getElementById('completed-count').textContent = `${completed} Completed`;
+            taskCount = total;
+            completedTasks = completed;
+        }
+
+        // Function to set analysis results
+        function setAnalysisResults(results) {
+            document.getElementById('analysis-results').textContent = results;
+        }
+
+        // WebSocket connection for real-time updates
+        const ws = new WebSocket(`ws://${window.location.host}/ws/cscsc_agent_demo`);
+
+        ws.onopen = function(event) {
+            addLogEntry('Connected to demo server');
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'log') {
+                addLogEntry(data.message, data.log_type || 'info');
+            } else if (data.type === 'agent_status') {
+                updateAgentStatus(data.agent, data.status);
+            } else if (data.type === 'progress') {
+                updateProgress(data.analysis, data.percent);
+            } else if (data.type === 'tasks') {
+                updateTaskCounts(data.total, data.completed, data.agent_count);
+            } else if (data.type === 'results') {
+                setAnalysisResults(data.content);
+            }
+        };
+
+        ws.onclose = function(event) {
+            addLogEntry('Disconnected from demo server', 'error');
+        };
+
+        // For the static demo, let's simulate the analysis process
+        setTimeout(() => {
+            addLogEntry('Starting environmental impact analysis');
+            updateProgress('Environmental Impact Analysis', 10);
+            updateTaskCounts(3, 0, 5);
+            updateAgentStatus('Environmental Impact Analyst', 'Working');
+        }, 2000);
+
+        setTimeout(() => {
+            addLogEntry('Analysis of environmental factors in progress...', 'thinking');
+            updateProgress('Environmental Impact Analysis', 30);
+        }, 4000);
+
+        setTimeout(() => {
+            addLogEntry('Environmental factors analyzed', 'task-complete');
+            updateProgress('Environmental Impact Analysis', 50);
+            updateTaskCounts(3, 1, 5);
+            updateAgentStatus('Environmental Impact Analyst', 'Completed');
+            updateAgentStatus('EVM Integration Specialist', 'Working');
+        }, 6000);
+
+        setTimeout(() => {
+            addLogEntry('Incorporating environmental impacts into EVM metrics...', 'thinking');
+            updateProgress('Environmental Impact Analysis', 70);
+        }, 8000);
+
+        setTimeout(() => {
+            addLogEntry('EVM metrics adjusted for environmental factors', 'task-complete');
+            updateProgress('Environmental Impact Analysis', 90);
+            updateTaskCounts(3, 2, 5);
+            updateAgentStatus('EVM Integration Specialist', 'Completed');
+        }, 10000);
+
+        setTimeout(() => {
+            addLogEntry('Analysis complete!', 'task-complete');
+            updateProgress('Environmental Impact Analysis', 100);
+            updateTaskCounts(3, 3, 5);
+            
+            // Set analysis results
+            const results = `Environmental Impact Analysis Results:
+
+Factor: Heavy Rainfall (E001)
+- Severity: High
+- Affected Tasks: T003, T004
+- EVM Impact: 
+  * Schedule Variance (SV): -3.5 days
+  * Cost Variance (CV): -$12,500
+  * SPI: 0.85
+  * CPI: 0.78
+
+Factor: Unexpected Rock Formation (E002)
+- Severity: Medium
+- Affected Tasks: T003
+- EVM Impact:
+  * Schedule Variance (SV): -2.1 days
+  * Cost Variance (CV): -$8,200
+  * SPI: 0.90
+  * CPI: 0.85
+
+Factor: Additional Permits (E003)
+- Severity: Medium
+- Affected Tasks: T007, T008
+- EVM Impact:
+  * Schedule Variance (SV): -5.0 days
+  * Cost Variance (CV): -$4,300
+  * SPI: 0.82
+  * CPI: 0.91
+
+Recommended Mitigation Actions:
+1. Deploy additional dewatering equipment for affected excavation areas
+2. Revise excavation method for rock formations using specialized equipment
+3. Expedite permit processing through administrative channels`;
+            
+            setAnalysisResults(results);
+        }, 12000);
+
+        // Ensure the document is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize EVM Metrics Chart
+            const evmMetricsCtx = document.getElementById('evm-metrics-chart').getContext('2d');
+            const evmMetricsChart = new Chart(evmMetricsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Planned Value (PV)',
+                        data: [100000, 230000, 350000, 470000, 580000, 650000],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Earned Value (EV)',
+                        data: [90000, 210000, 320000, 400000, 490000, 550000],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Actual Cost (AC)',
+                        data: [110000, 250000, 380000, 470000, 600000, 700000],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'EVM Metrics Over Time'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Value ($)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Initialize Variance Chart
+            const varianceCtx = document.getElementById('variance-chart').getContext('2d');
+            const varianceChart = new Chart(varianceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Schedule Variance (SV)',
+                        data: [-10000, -20000, -30000, -70000, -90000, -100000],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }, {
+                        label: 'Cost Variance (CV)',
+                        data: [-20000, -40000, -60000, -70000, -110000, -150000],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Schedule and Cost Variances'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Variance ($)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Initialize Forecast Chart with advanced ML predictions
+            const forecastCtx = document.getElementById('forecast-chart').getContext('2d');
+            const forecastChart = new Chart(forecastCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Historical EV',
+                        data: [
+                            {x: '2025-01-01', y: 90000},
+                            {x: '2025-02-01', y: 210000},
+                            {x: '2025-03-01', y: 320000},
+                            {x: '2025-04-01', y: 400000},
+                            {x: '2025-05-01', y: 490000},
+                            {x: '2025-06-01', y: 550000}
+                        ],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'AI Forecast (Bayesian)',
+                        data: [
+                            {x: '2025-05-01', y: 490000},
+                            {x: '2025-06-01', y: 550000},
+                            {x: '2025-07-01', y: 630000},
+                            {x: '2025-08-01', y: 710000},
+                            {x: '2025-09-01', y: 790000},
+                            {x: '2025-10-01', y: 870000},
+                            {x: '2025-11-01', y: 920000},
+                            {x: '2025-12-01', y: 1000000}
+                        ],
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Upper Bound (97.5%)',
+                        data: [
+                            {x: '2025-05-01', y: 510000},
+                            {x: '2025-06-01', y: 580000},
+                            {x: '2025-07-01', y: 670000},
+                            {x: '2025-08-01', y: 760000},
+                            {x: '2025-09-01', y: 850000},
+                            {x: '2025-10-01', y: 940000},
+                            {x: '2025-11-01', y: 1000000},
+                            {x: '2025-12-01', y: 1090000}
+                        ],
+                        borderColor: 'rgba(153, 102, 255, 0.3)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: false
+                    }, {
+                        label: 'Lower Bound (2.5%)',
+                        data: [
+                            {x: '2025-05-01', y: 470000},
+                            {x: '2025-06-01', y: 520000},
+                            {x: '2025-07-01', y: 590000},
+                            {x: '2025-08-01', y: 660000},
+                            {x: '2025-09-01', y: 730000},
+                            {x: '2025-10-01', y: 800000},
+                            {x: '2025-11-01', y: 840000},
+                            {x: '2025-12-01', y: 910000}
+                        ],
+                        borderColor: 'rgba(153, 102, 255, 0.3)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: '-1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'AI-Powered EV Forecasting with Confidence Intervals'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        legend: {
+                            labels: {
+                                filter: function(item, chart) {
+                                    // Hide confidence bound labels from legend
+                                    return !item.text.includes('Bound');
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                thresholdLine: {
+                                    type: 'line',
+                                    yMin: 750000,
+                                    yMax: 750000,
+                                    borderColor: 'rgba(255, 99, 132, 0.5)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        display: true,
+                                        content: 'Budget Threshold',
+                                        position: 'start'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'month',
+                                displayFormats: {
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Earned Value ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Initialize Monte Carlo Simulation Chart
+            const monteCarloCtx = document.getElementById('monte-carlo-chart').getContext('2d');
+            const monteCarloChart = new Chart(monteCarloCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Aug 2025', 'Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025', 'Jan 2026', 'Feb 2026'],
+                    datasets: [{
+                        label: 'Completion Probability Distribution',
+                        data: [5, 12, 25, 38, 15, 3, 2],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(75, 192, 192, 0.8)',  // P50 - Oct 2025
+                            'rgba(255, 159, 64, 0.8)',  // P80 - Nov 2025
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(255, 99, 132, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Project Completion Probability (Monte Carlo, n=5000)'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let percentage = context.raw;
+                                    return `Probability: ${percentage}%`;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                p50Line: {
+                                    type: 'line',
+                                    xMin: 2,
+                                    xMax: 2,
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        enabled: true,
+                                        content: 'P50',
+                                        position: 'top'
+                                    }
+                                },
+                                p80Line: {
+                                    type: 'line',
+                                    xMin: 3,
+                                    xMax: 3,
+                                    borderColor: 'rgba(255, 159, 64, 1)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        enabled: true,
+                                        content: 'P80',
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Probability (%)'
+                            },
+                            max: 40
+                        }
+                    }
+                }
+            });
+            
+            // Event handlers for technical analysis buttons
+            document.getElementById('run-forecast').addEventListener('click', function() {
+                // Show loading indicator
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Running...';
+                
+                // Call the forecast API
+                fetch('/api/v1/cscsc/forecast')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Forecast data:', data);
+                        // Update charts with data
+                        updateForecastCharts(data);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Run Forecast';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching forecast data:', error);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Run Forecast';
+                    });
+            });
+            
+            document.getElementById('run-sensitivity').addEventListener('click', function() {
+                // Show loading indicator
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing...';
+                
+                // Call the sensitivity analysis API
+                fetch('/api/v1/cscsc/sensitivity')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Sensitivity data:', data);
+                        // Update charts with data
+                        updateSensitivityResults(data);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Sensitivity Analysis';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching sensitivity data:', error);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Sensitivity Analysis';
+                    });
+            });
+
+            document.getElementById('run-simulation').addEventListener('click', function() {
+                // Show loading indicator
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Simulating...';
+                
+                // Call the Monte Carlo simulation API
+                fetch('/api/v1/cscsc/monte-carlo')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Monte Carlo data:', data);
+                        // Update charts with data
+                        updateMonteCarloResults(data);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Run Simulation';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching Monte Carlo data:', error);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Run Simulation';
+                    });
+            });
+            
+            function updateForecastCharts(data) {
+                // Update baseline forecast chart
+                updateBaselineForecastChart(data);
+                
+                // Update scenarios chart
+                updateScenariosChart(data);
+                
+                // Update anomalies chart
+                updateAnomaliesChart(data);
+            }
+            
+            function updateBaselineForecastChart(data) {
+                const forecastCtx = document.getElementById('forecast-chart').getContext('2d');
+                if (window.forecastChart) {
+                    window.forecastChart.destroy();
+                }
+                
+                const historicalData = data.historical.map(d => ({ x: d.date, y: d.value }));
+                const forecastData = data.forecast.map(d => ({ x: d.date, y: d.value }));
+                const upperBoundData = data.upper_bound.map(d => ({ x: d.date, y: d.value }));
+                const lowerBoundData = data.lower_bound.map(d => ({ x: d.date, y: d.value }));
+                
+                window.forecastChart = new Chart(forecastCtx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Historical EV',
+                            data: historicalData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Bayesian-ARIMA Forecast',
+                            data: forecastData,
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 3,
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Upper Bound (97.5%)',
+                            data: upperBoundData,
+                            borderColor: 'rgba(153, 102, 255, 0.3)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: false
+                        }, {
+                            label: 'Lower Bound (2.5%)',
+                            data: lowerBoundData,
+                            borderColor: 'rgba(153, 102, 255, 0.3)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: '-1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Bayesian-ARIMA Hybrid Forecasting with Confidence Intervals'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            legend: {
+                                labels: {
+                                    filter: function(item, chart) {
+                                        // Hide confidence bound labels from legend
+                                        return !item.text.includes('Bound');
+                                    }
+                                }
+                            },
+                            annotation: {
+                                annotations: {
+                                    thresholdLine: {
+                                        type: 'line',
+                                        yMin: 750000,
+                                        yMax: 750000,
+                                        borderColor: 'rgba(255, 99, 132, 0.5)',
+                                        borderWidth: 2,
+                                        borderDash: [6, 6],
+                                        label: {
+                                            display: true,
+                                            content: 'Budget Threshold',
+                                            position: 'start'
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'month',
+                                    displayFormats: {
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Earned Value ($)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateScenariosChart(data) {
+                const scenariosCtx = document.getElementById('scenarios-chart').getContext('2d');
+                if (window.scenariosChart) {
+                    window.scenariosChart.destroy();
+                }
+                
+                if (!data.scenarios) return;
+                
+                const historicalData = data.historical.map(d => ({ x: d.date, y: d.value }));
+                const baselineData = data.forecast.map(d => ({ x: d.date, y: d.value }));
+                
+                const datasets = [{
+                    label: 'Historical EV',
+                    data: historicalData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Baseline Forecast',
+                    data: baselineData,
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    tension: 0.4,
+                    fill: true
+                }];
+                
+                // Add all scenario datasets
+                data.scenarios.forEach((scenario, index) => {
+                    const colors = [
+                        { border: 'rgba(54, 162, 235, 1)', bg: 'rgba(54, 162, 235, 0.1)' },
+                        { border: 'rgba(255, 99, 132, 1)', bg: 'rgba(255, 99, 132, 0.1)' }
+                    ];
+                    
+                    datasets.push({
+                        label: `${scenario.name} Scenario`,
+                        data: scenario.forecast.map(d => ({ x: d.date, y: d.value })),
+                        borderColor: colors[index].border,
+                        backgroundColor: colors[index].bg,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 3,
+                        tension: 0.4,
+                        fill: false
+                    });
+                });
+                
+                window.scenariosChart = new Chart(scenariosCtx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Multiple Forecast Scenarios'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'month',
+                                    displayFormats: {
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Earned Value ($)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateAnomaliesChart(data) {
+                const anomaliesCtx = document.getElementById('anomalies-chart').getContext('2d');
+                if (window.anomaliesChart) {
+                    window.anomaliesChart.destroy();
+                }
+                
+                if (!data.anomaly_detection || !data.anomaly_detection.anomalies) return;
+                
+                const historicalData = data.historical.map(d => ({ x: d.date, y: d.value }));
+                const forecastData = data.forecast.map(d => ({ x: d.date, y: d.value }));
+                
+                // Create point datasets for anomalies
+                const positiveAnomalies = data.anomaly_detection.anomalies
+                    .filter(a => a.type === 'positive')
+                    .map(a => ({ x: a.date, y: a.value }));
+                    
+                const negativeAnomalies = data.anomaly_detection.anomalies
+                    .filter(a => a.type === 'negative')
+                    .map(a => ({ x: a.date, y: a.value }));
+                
+                window.anomaliesChart = new Chart(anomaliesCtx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Historical & Forecast EV',
+                            data: [...historicalData, ...forecastData],
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Positive Anomalies',
+                            data: positiveAnomalies,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 0,
+                            pointRadius: 8,
+                            pointStyle: 'triangle',
+                            tension: 0,
+                            fill: false
+                        }, {
+                            label: 'Negative Anomalies',
+                            data: negativeAnomalies,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 0,
+                            pointRadius: 8,
+                            pointStyle: 'triangle',
+                            rotation: 180,
+                            tension: 0,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Anomaly Detection in Project Performance'
+                            },
+                            tooltip: {
+                                mode: 'nearest',
+                                intersect: true,
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'month',
+                                    displayFormats: {
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Earned Value ($)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateSensitivityResults(data) {
+                // Update elasticity view
+                updateElasticityResults(data);
+                
+                // Update correlation matrix chart
+                updateCorrelationMatrix(data);
+                
+                // Update network graph visualization
+                updateNetworkGraph(data);
+            }
+            
+            function updateElasticityResults(data) {
+                const placeholder = document.getElementById('sensitivity-placeholder');
+                let resultsHTML = '';
+                
+                // Sort parameters by elasticity in descending order
+                const sortedParams = [...data.parameters].sort((a, b) => b.elasticity - a.elasticity);
+                
+                // Add key finding
+                resultsHTML += `<div class="alert alert-primary">${data.key_finding}</div>`;
+                
+                // Add parameter results with visualization
+                resultsHTML += '<div class="mt-3">';
+                sortedParams.forEach(param => {
+                    const elasticityClass = param.elasticity >= 1 ? 'bg-danger' : 'bg-warning';
+                    const thresholdBadge = `<span class="badge ${param.threshold === 'High' ? 'bg-danger' : 'bg-warning'}">${param.threshold}</span>`;
+                    
+                    resultsHTML += `
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>${param.name}</strong>
+                            <div>
+                                <span class="badge ${elasticityClass}">ε = ${param.elasticity.toFixed(2)}</span>
+                                ${thresholdBadge}
+                            </div>
+                        </div>
+                        <div class="progress mb-1">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: ${Math.min(param.elasticity * 40, 100)}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small>${param.negative_impact}</small>
+                            <small>${param.positive_impact}</small>
+                        </div>
+                    </div>`;
+                });
+                resultsHTML += '</div>';
+                
+                placeholder.innerHTML = resultsHTML;
+            }
+            
+            function updateCorrelationMatrix(data) {
+                if (!data.correlation_matrix) return;
+                
+                const correlationCtx = document.getElementById('correlation-chart').getContext('2d');
+                if (window.correlationChart) {
+                    window.correlationChart.destroy();
+                }
+                
+                const parameterNames = data.parameters.map(p => p.name);
+                const correlationMatrix = data.correlation_matrix;
+                
+                // Create heatmap data
+                const heatmapData = [];
+                correlationMatrix.forEach((row, i) => {
+                    row.forEach((value, j) => {
+                        heatmapData.push({
+                            x: parameterNames[j],
+                            y: parameterNames[i],
+                            v: value
+                        });
+                    });
+                });
+                
+                window.correlationChart = new Chart(correlationCtx, {
+                    type: 'matrix',
+                    data: {
+                        datasets: [{
+                            label: 'Parameter Correlation',
+                            data: heatmapData,
+                            backgroundColor(context) {
+                                const value = context.dataset.data[context.dataIndex].v;
+                                const alpha = Math.abs(value);
+                                return value > 0
+                                    ? `rgba(54, 162, 235, ${alpha})`
+                                    : `rgba(255, 99, 132, ${alpha})`;
+                            },
+                            borderColor: 'white',
+                            borderWidth: 1,
+                            width: ({ chart }) => (chart.chartArea || {}).width / parameterNames.length - 3,
+                            height: ({ chart }) => (chart.chartArea || {}).height / parameterNames.length - 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title() {
+                                        return '';
+                                    },
+                                    label(context) {
+                                        const v = context.dataset.data[context.dataIndex];
+                                        return [`${v.x} × ${v.y}`, `Correlation: ${v.v.toFixed(2)}`];
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Parameter Correlation Matrix'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'category',
+                                labels: parameterNames,
+                                offset: true,
+                                ticks: {
+                                    display: true
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                type: 'category',
+                                labels: parameterNames,
+                                offset: true,
+                                ticks: {
+                                    display: true
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateNetworkGraph(data) {
+                const networkDiv = document.getElementById('network-chart');
+                networkDiv.innerHTML = '';
+                
+                if (!data.parameters || !data.parameters[0].interdependencies) return;
+                
+                // Define SVG dimensions
+                const width = networkDiv.clientWidth;
+                const height = 300;
+                const margin = { top: 20, right: 20, bottom: 20, left: 150 };
+                
+                // Create SVG element
+                const svg = d3.select('#network-chart')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Create nodes and links for the network graph
+                const nodes = data.parameters.map(param => ({ 
+                    id: param.name, 
+                    elasticity: param.elasticity,
+                    threshold: param.threshold
+                }));
+                
+                const links = [];
+                data.parameters.forEach(param => {
+                    param.interdependencies.forEach(dependency => {
+                        links.push({ 
+                            source: param.name, 
+                            target: dependency,
+                            strength: 0.5  // Default strength
+                        });
+                    });
+                });
+                
+                // Define force simulation
+                const simulation = d3.forceSimulation(nodes)
+                    .force('charge', d3.forceManyBody().strength(-400))
+                    .force('center', d3.forceCenter(width / 2, height / 2))
+                    .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                    .force('collision', d3.forceCollide().radius(50));
+                
+                // Draw links
+                const link = svg.append('g')
+                    .selectAll('line')
+                    .data(links)
+                    .enter().append('line')
+                    .attr('stroke', '#999')
+                    .attr('stroke-opacity', 0.6)
+                    .attr('stroke-width', 2);
+                
+                // Draw nodes
+                const node = svg.append('g')
+                    .selectAll('g')
+                    .data(nodes)
+                    .enter().append('g');
+                
+                // Add circles for nodes
+                node.append('circle')
+                    .attr('r', d => 10 + d.elasticity * 10)
+                    .attr('fill', d => d.threshold === 'High' ? '#dc3545' : '#ffc107')
+                    .attr('stroke', '#fff')
+                    .attr('stroke-width', 1.5);
+                
+                // Add labels
+                node.append('text')
+                    .text(d => d.id)
+                    .attr('font-size', 10)
+                    .attr('dx', 15)
+                    .attr('dy', 4)
+                    .attr('fill', '#333');
+                
+                // Update positions in simulation
+                simulation.on('tick', () => {
+                    link
+                        .attr('x1', d => d.source.x)
+                        .attr('y1', d => d.source.y)
+                        .attr('x2', d => d.target.x)
+                        .attr('y2', d => d.target.y);
+                    
+                    node.attr('transform', d => `translate(${d.x}, ${d.y})`);
+                });
+                
+                // Add title with explanation
+                svg.append('text')
+                    .attr('x', margin.left)
+                    .attr('y', margin.top)
+                    .attr('font-weight', 'bold')
+                    .text('Parameter Interdependency Network');
+                
+                svg.append('text')
+                    .attr('x', margin.left)
+                    .attr('y', margin.top + 20)
+                    .attr('font-size', 10)
+                    .text('Node size indicates elasticity, color indicates threshold');
+            }
+            
+            document.getElementById('run-simulation').addEventListener('click', function() {
+                // Show loading indicator
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Simulating...';
+                
+                // Call the Monte Carlo simulation API
+                fetch('/api/v1/cscsc/monte-carlo')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateMonteCarloResults(data);
+                        
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Run Monte Carlo';
+                        
+                        // Add log entry
+                        addLogEntry('Advanced Monte Carlo simulation with 10,000 iterations complete', 'task-complete');
+                    })
+                    .catch(error => {
+                        console.error('Error running Monte Carlo simulation:', error);
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = 'Run Monte Carlo';
+                    });
+            });
+            
+            function updateMonteCarloResults(data) {
+                // Update distribution chart
+                updateDistributionChart(data);
+                
+                // Update S-curve chart
+                updateSCurveChart(data);
+                
+                // Update critical path visualization
+                updateCriticalPathChart(data);
+                
+                // Update risk factors
+                updateRiskFactorsChart(data);
+            }
+            
+            function updateDistributionChart(data) {
+                const distCtx = document.getElementById('monte-carlo-chart').getContext('2d');
+                if (window.monteCarloChart) {
+                    window.monteCarloChart.destroy();
+                }
+                
+                const completionDistribution = data.completion_distribution;
+                
+                // Prepare dataset
+                const labels = [];
+                const values = [];
+                completionDistribution.forEach(point => {
+                    labels.push(point.completion_date);
+                    values.push(point.frequency);
+                });
+                
+                // Find key percentiles
+                const p10 = data.percentiles.p10;
+                const p50 = data.percentiles.p50;
+                const p90 = data.percentiles.p90;
+                
+                window.monteCarloChart = new Chart(distCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Completion Probability Distribution',
+                            data: values,
+                            backgroundColor: labels.map(label => {
+                                // Color bars based on percentiles
+                                if (label === p10) return 'rgba(54, 162, 235, 0.7)';
+                                if (label === p50) return 'rgba(153, 102, 255, 0.7)';
+                                if (label === p90) return 'rgba(255, 99, 132, 0.7)';
+                                return 'rgba(201, 203, 207, 0.7)';
+                            }),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Project Completion Date Probability Distribution'
+                            },
+                            annotation: {
+                                annotations: {
+                                    p10Line: {
+                                        type: 'line',
+                                        xMin: labels.indexOf(p10),
+                                        xMax: labels.indexOf(p10),
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 2,
+                                        label: {
+                                            display: true,
+                                            content: 'P10 (10%)',
+                                            position: 'start'
+                                        }
+                                    },
+                                    p50Line: {
+                                        type: 'line',
+                                        xMin: labels.indexOf(p50),
+                                        xMax: labels.indexOf(p50),
+                                        borderColor: 'rgba(153, 102, 255, 1)',
+                                        borderWidth: 2,
+                                        label: {
+                                            display: true,
+                                            content: 'P50 (50%)',
+                                            position: 'start'
+                                        }
+                                    },
+                                    p90Line: {
+                                        type: 'line',
+                                        xMin: labels.indexOf(p90),
+                                        xMax: labels.indexOf(p90),
+                                        borderColor: 'rgba(255, 99, 132, 1)',
+                                        borderWidth: 2,
+                                        label: {
+                                            display: true,
+                                            content: 'P90 (90%)',
+                                            position: 'start'
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Completion Date'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Frequency'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Update completion date ranges in text
+                document.getElementById('p10-date').innerText = p10;
+                document.getElementById('p50-date').innerText = p50;
+                document.getElementById('p90-date').innerText = p90;
+            }
+            
+            function updateSCurveChart(data) {
+                if (!data.s_curve || !data.s_curve.length) return;
+                
+                const sCurveCtx = document.getElementById('s-curve-chart').getContext('2d');
+                if (window.sCurveChart) {
+                    window.sCurveChart.destroy();
+                }
+                
+                // Prepare datasets
+                const p10Data = data.s_curve.map(point => ({ x: point.date, y: point.p10 }));
+                const p50Data = data.s_curve.map(point => ({ x: point.date, y: point.p50 }));
+                const p90Data = data.s_curve.map(point => ({ x: point.date, y: point.p90 }));
+                
+                window.sCurveChart = new Chart(sCurveCtx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'P10 (Optimistic)',
+                            data: p10Data,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: false
+                        }, {
+                            label: 'P50 (Most Likely)',
+                            data: p50Data,
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: false
+                        }, {
+                            label: 'P90 (Conservative)',
+                            data: p90Data,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Project Progress S-Curve'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'month',
+                                    displayFormats: {
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Percent Complete'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateCriticalPathChart(data) {
+                if (!data.critical_path || !data.critical_path.activities) return;
+                
+                const criticalPathDiv = document.getElementById('critical-path-chart');
+                criticalPathDiv.innerHTML = '';
+                
+                // Create the critical path visualization
+                const width = criticalPathDiv.clientWidth;
+                const height = 300;
+                const margin = { top: 50, right: 30, bottom: 50, left: 30 };
+                
+                // Create SVG element
+                const svg = d3.select('#critical-path-chart')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Extract critical path activities
+                const activities = data.critical_path.activities;
+                
+                // Set time scale
+                const timeFormat = d3.timeFormat('%b %d');
+                const timeParse = d3.timeParse('%Y-%m-%d');
+                
+                const timeScale = d3.scaleTime()
+                    .domain([
+                        timeParse(activities[0].start_date),
+                        timeParse(activities[activities.length - 1].end_date)
+                    ])
+                    .range([margin.left, width - margin.right]);
+                
+                // Draw time axis
+                const timeAxis = d3.axisBottom(timeScale).ticks(5).tickFormat(timeFormat);
+                svg.append('g')
+                    .attr('transform', `translate(0, ${height - margin.bottom})`)
+                    .call(timeAxis);
+                
+                // Draw title
+                svg.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', margin.top / 2)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 14)
+                    .attr('font-weight', 'bold')
+                    .text('Critical Path Analysis');
+                
+                // Activity row height and spacing
+                const rowHeight = 30;
+                const rowSpacing = 15;
+                
+                // Create activity bars
+                const activityGroups = svg.selectAll('.activity')
+                    .data(activities)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'activity')
+                    .attr('transform', (d, i) => `translate(0, ${margin.top + i * (rowHeight + rowSpacing)})`);
+                
+                // Draw bars for each activity
+                activityGroups.append('rect')
+                    .attr('x', d => timeScale(timeParse(d.start_date)))
+                    .attr('y', 0)
+                    .attr('width', d => timeScale(timeParse(d.end_date)) - timeScale(timeParse(d.start_date)))
+                    .attr('height', rowHeight)
+                    .attr('rx', 5)
+                    .attr('ry', 5)
+                    .attr('fill', d => {
+                        // Color based on risk level
+                        if (d.risk_level === 'High') return '#dc3545';
+                        if (d.risk_level === 'Medium') return '#ffc107';
+                        return '#198754';
+                    });
+                
+                // Add activity names
+                activityGroups.append('text')
+                    .attr('x', d => timeScale(timeParse(d.start_date)) + 5)
+                    .attr('y', rowHeight / 2 + 5)
+                    .attr('fill', 'white')
+                    .attr('font-size', 10)
+                    .text(d => d.name);
+                
+                // Add duration text
+                activityGroups.append('text')
+                    .attr('x', d => (timeScale(timeParse(d.start_date)) + timeScale(timeParse(d.end_date))) / 2)
+                    .attr('y', rowHeight + 12)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 9)
+                    .text(d => `${d.duration} days`);
+                
+                // Add connecting arrows between activities
+                for (let i = 0; i < activities.length - 1; i++) {
+                    const start = activities[i];
+                    const end = activities[i + 1];
+                    
+                    const startX = timeScale(timeParse(start.end_date));
+                    const startY = margin.top + i * (rowHeight + rowSpacing) + rowHeight / 2;
+                    const endX = timeScale(timeParse(end.start_date));
+                    const endY = margin.top + (i + 1) * (rowHeight + rowSpacing) + rowHeight / 2;
+                    
+                    // Draw connecting line
+                    svg.append('path')
+                        .attr('d', `M ${startX} ${startY} H ${(startX + endX) / 2} V ${endY} H ${endX}`)
+                        .attr('fill', 'none')
+                        .attr('stroke', '#666')
+                        .attr('stroke-width', 1.5)
+                        .attr('marker-end', 'url(#arrow)');
+                }
+                
+                // Add arrow marker for path connections
+                svg.append('defs').append('marker')
+                    .attr('id', 'arrow')
+                    .attr('viewBox', '0 -5 10 10')
+                    .attr('refX', 8)
+                    .attr('refY', 0)
+                    .attr('markerWidth', 6)
+                    .attr('markerHeight', 6)
+                    .attr('orient', 'auto')
+                    .append('path')
+                    .attr('d', 'M0,-5L10,0L0,5')
+                    .attr('fill', '#666');
+            }
+            
+            function updateRiskFactorsChart(data) {
+                if (!data.risk_factors || !data.risk_factors.length) return;
+                
+                const riskTreeDiv = document.getElementById('risk-tree-chart');
+                riskTreeDiv.innerHTML = '';
+                
+                // Get the most significant risk factors (top 5)
+                const topRisks = data.risk_factors.slice(0, 5);
+                
+                // Set up dimensions for visualization
+                const width = riskTreeDiv.clientWidth;
+                const height = 300;
+                const margin = { top: 20, right: 20, bottom: 30, left: 150 };
+                
+                // Create SVG
+                const svg = d3.select('#risk-tree-chart')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Create scales
+                const xScale = d3.scaleLinear()
+                    .domain([0, d3.max(topRisks, d => d.impact_score)])
+                    .range([margin.left, width - margin.right]);
+                
+                const yScale = d3.scaleBand()
+                    .domain(topRisks.map(d => d.factor))
+                    .range([margin.top, height - margin.bottom])
+                    .padding(0.3);
+                
+                // Add axes
+                svg.append('g')
+                    .attr('transform', `translate(0, ${height - margin.bottom})`)
+                    .call(d3.axisBottom(xScale).ticks(5));
+                    
+                svg.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', height - 5)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 10)
+                    .text('Impact Score');
+                
+                svg.append('g')
+                    .attr('transform', `translate(${margin.left}, 0)`)
+                    .call(d3.axisLeft(yScale));
+                
+                // Add title
+                svg.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', 15)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-weight', 'bold')
+                    .text('Regression Tree Risk Analysis');
+                
+                // Create bars
+                svg.selectAll('.risk-bar')
+                    .data(topRisks)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'risk-bar')
+                    .attr('x', margin.left)
+                    .attr('y', d => yScale(d.factor))
+                    .attr('width', d => xScale(d.impact_score) - margin.left)
+                    .attr('height', yScale.bandwidth())
+                    .attr('fill', d => {
+                        // Color based on impact score
+                        if (d.impact_score > 0.7) return '#dc3545';
+                        if (d.impact_score > 0.4) return '#ffc107';
+                        return '#6c757d';
+                    });
+                
+                // Add impact score text
+                svg.selectAll('.risk-text')
+                    .data(topRisks)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'risk-text')
+                    .attr('x', d => xScale(d.impact_score) + 5)
+                    .attr('y', d => yScale(d.factor) + yScale.bandwidth() / 2 + 4)
+                    .attr('font-size', 10)
+                    .text(d => d.impact_score.toFixed(2));
+                
+                // Add threshold line
+                const thresholdValue = 0.6;
+                svg.append('line')
+                    .attr('x1', xScale(thresholdValue))
+                    .attr('y1', margin.top)
+                    .attr('x2', xScale(thresholdValue))
+                    .attr('y2', height - margin.bottom)
+                    .attr('stroke', 'red')
+                    .attr('stroke-dasharray', '4')
+                    .attr('stroke-width', 1);
+                
+                svg.append('text')
+                    .attr('x', xScale(thresholdValue) + 5)
+                    .attr('y', margin.top - 5)
+                    .attr('font-size', 10)
+                    .attr('fill', 'red')
+                    .text('Critical Threshold');
+            }
+        });
+    </script>
+</body>
+</html>

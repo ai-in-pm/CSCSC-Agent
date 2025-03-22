@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPXJ Project File Conversion - CSCSC AI Agent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .file-info {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+        .file-format-badge {
+            padding: 5px 10px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .format-group {
+            margin-bottom: 15px;
+        }
+        .action-buttons {
+            margin-top: 20px;
+        }
+        .drag-drop-zone {
+            border: 2px dashed #ced4da;
+            border-radius: 5px;
+            padding: 50px 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .drag-drop-zone.active {
+            border-color: #007bff;
+            background-color: #e9f5ff;
+        }
+        .progress-container {
+            margin-top: 15px;
+            display: none;
+        }
+        .analysis-result {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        #visualizations {
+            margin-top: 20px;
+        }
+        .chart-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="display-5 mb-4">Project File Converter</h1>
+                <p class="lead">
+                    Convert between various project file formats including Microsoft Project, Primavera P6, and more using the MPXJ library.
+                </p>
+                <div class="alert alert-info">
+                    <strong>Note:</strong> This tool allows you to upload project files, convert them to different formats, analyze their contents, and import them into a database for further analysis.
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Upload Project File</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="drag-drop-zone" id="dropZone">
+                            <div class="mb-3">
+                                <i class="bi bi-upload fs-1"></i>
+                                <p>Drag & Drop your project file here or click to browse</p>
+                                <small class="text-muted">Supported formats include: MPP, MPX, XML, XER, PMXML, PP, and many more</small>
+                            </div>
+                            <input type="file" id="fileInput" class="form-control d-none">
+                            <button class="btn btn-primary" id="browseButton">Browse Files</button>
+                        </div>
+
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted mt-1" id="uploadStatus">Uploading...</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Info & Actions Section (initially hidden) -->
+                <div id="fileInfoSection" class="card mb-4" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">File Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="file-info">
+                            <h5 id="fileName">project_file.mpp</h5>
+                            <div class="mb-2">
+                                <span class="badge bg-info" id="fileFormat">Microsoft Project</span>
+                                <span class="text-muted" id="fileSize">1.2 MB</span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Actions</h5>
+                                <div class="mb-3">
+                                    <label for="outputFormat" class="form-label">Convert to format:</label>
+                                    <select class="form-select" id="outputFormat">
+                                        <!-- Options will be populated via JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-primary" id="convertButton">Convert File</button>
+                                    <button class="btn btn-success" id="analyzeButton">Analyze Project</button>
+                                    <button class="btn btn-info" id="importButton">Import to Database</button>
+                                    <button class="btn btn-danger" id="deleteButton">Delete File</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Analysis Options</h5>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="" id="extractStats" checked>
+                                    <label class="form-check-label" for="extractStats">
+                                        Extract project statistics
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="" id="extractCriticalPath">
+                                    <label class="form-check-label" for="extractCriticalPath">
+                                        Extract critical path
+                                    </label>
+                                </div>
+                                <h6 class="mt-3">Extract Tables:</h6>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="extractTasks" value="tasks">
+                                    <label class="form-check-label" for="extractTasks">Tasks</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="extractResources" value="resources">
+                                    <label class="form-check-label" for="extractResources">Resources</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="extractAssignments" value="assignments">
+                                    <label class="form-check-label" for="extractAssignments">Assignments</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Results Section (initially hidden) -->
+                <div id="analysisSection" class="card mb-4" style="display: none;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Project Analysis</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="collapseAnalysisButton">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="card-body" id="analysisContent">
+                        <div id="statisticsContainer">
+                            <h5>Project Statistics</h5>
+                            <div class="row" id="statisticsData">
+                                <!-- Will be populated via JavaScript -->
+                            </div>
+                        </div>
+
+                        <div id="criticalPathContainer" class="mt-4" style="display: none;">
+                            <h5>Critical Path</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Task Name</th>
+                                            <th>Start</th>
+                                            <th>Finish</th>
+                                            <th>Duration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="criticalPathData">
+                                        <!-- Will be populated via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="tablesContainer" class="mt-4">
+                            <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+                                <!-- Will be populated via JavaScript -->
+                            </ul>
+                            <div class="tab-content mt-2" id="dataTabsContent">
+                                <!-- Will be populated via JavaScript -->
+                            </div>
+                        </div>
+
+                        <div id="visualizations" class="mt-4">
+                            <h5>Visualizations</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="chart-container">
+                                        <canvas id="taskDistributionChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="chart-container">
+                                        <canvas id="resourceAllocationChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script imports -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/mpxj_conversion.js"></script>
+</body>
+</html>

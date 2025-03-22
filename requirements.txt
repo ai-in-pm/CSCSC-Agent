@@ -1,0 +1,54 @@
+# Core dependencies
+fastapi==0.95.0
+uvicorn==0.22.0
+pydantic==1.10.7
+python-dotenv==1.0.0
+
+# Data processing
+pandas==2.0.0
+numpy==1.24.3
+
+# Database
+sqlalchemy==2.0.9
+alembic==1.10.3
+
+# AI/ML
+scikit-learn==1.2.2
+xgboost==1.7.5
+tensorflow==2.12.0
+
+# CrewAI and related
+crewai==0.108.0
+langchain>=0.0.350
+openai>=1.1.0
+# Note: If chromadb/chroma-hnswlib installation fails, install Microsoft C++ Build Tools first
+# or use crewai with alternative vector stores
+
+# NLP/NLG
+spacy==3.5.2
+transformers==4.28.1
+rasa==3.5.10
+
+# Integration & APIs
+requests==2.28.2
+aiohttp==3.8.4
+jira==3.5.1
+pyodbc==4.0.39
+flask==2.2.3 # For Primavera P6 integration web UI
+pyprimavera==1.1.2 # Primavera P6 API wrapper
+pywin32==306; platform_system=="Windows" # For Windows COM API integration with P6
+mpxj==0.0.9 # MPXJ Python wrapper for project file formats
+jpype1>=1.4.1 # Required for Java/Python interop
+typing-extensions>=4.4.0 # Required for MPXJ type hints
+
+# Visualization
+matplotlib==3.7.1
+seaborn==0.12.2
+
+# Testing
+pytest==7.3.1
+
+# Utilities
+tqdm==4.65.0
+loguru==0.7.0
+apscheduler==3.10.1

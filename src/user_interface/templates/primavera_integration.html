@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSCSC AI Agent - Primavera P6 Integration</title>
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        /* Custom styles for Primavera integration */
+        .primavera-container {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .gantt-chart {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .gantt-chart th, .gantt-chart td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+        }
+        
+        .gantt-task-name {
+            width: 200px;
+            font-weight: 500;
+        }
+        
+        .gantt-task-timeline {
+            position: relative;
+            height: 30px;
+        }
+        
+        .gantt-timeline-container {
+            position: relative;
+            height: 100%;
+            background-color: #f8f9fa;
+        }
+        
+        .gantt-task-bar {
+            position: absolute;
+            height: 20px;
+            top: 5px;
+            background-color: #007bff;
+            border-radius: 3px;
+        }
+        
+        .gantt-task-progress {
+            height: 100%;
+            background-color: #28a745;
+            border-radius: 3px 0 0 3px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-right: 10px;
+            display: inline-block;
+            width: 150px;
+            vertical-align: middle;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #28a745;
+        }
+        
+        .visualization-container {
+            height: 300px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .no-data-message {
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .error-message {
+            display: none;
+            color: #dc3545;
+            padding: 10px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        
+        .query-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .query-text-result {
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .query-result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .query-result-table th, .query-result-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .query-result-table th {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="display-5 mb-4">CSCSC AI Agent - Primavera P6 Integration</h1>
+                <p class="lead">View and analyze project data from Primavera P6 using the CSCSC AI Agent</p>
+            </div>
+        </div>
+        
+        <!-- Connection Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Primavera P6 Connection</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p id="connection-status">Checking connection status...</p>
+                                <p id="p6-path">P6 Path: <span class="text-muted">Loading...</span></p>
+                            </div>
+                            <div>
+                                <button id="refresh-connection" class="btn btn-primary">Refresh Connection</button>
+                                <button id="import-data" class="btn btn-success ms-2">Import Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Project Selector -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Select Project</h5>
+                    </div>
+                    <div class="card-body">
+                        <select id="primavera-project-selector" class="form-select">
+                            <option value="">Loading projects...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading and Error Messages -->
+        <div id="primavera-loading" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading data...</p>
+        </div>
+        
+        <div id="primavera-error" class="error-message"></div>
+        
+        <!-- Project Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Project Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="primavera-project-info">
+                            <p class="text-muted">Select a project to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visualizations -->
+        <div class="row mb-4">
+            <!-- Gantt Chart -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Project Schedule (Gantt Chart)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="primavera-gantt-chart" class="visualization-container">
+                            <div class="no-data-message">Select a project to view Gantt chart</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resource Chart -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Resource Allocation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="primavera-resource-chart" class="visualization-container">
+                            <div class="no-data-message">Select a project to view resource allocation</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Chart -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Progress S-Curve</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="primavera-progress-chart" class="visualization-container">
+                            <div class="no-data-message">Select a project to view progress chart</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Query Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">AI Assistant - Query Project Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <input type="text" id="primavera-query-input" class="form-control" 
+                                   placeholder="Ask about project data (e.g., 'Show me late activities' or 'What's the project progress?')">
+                            <button class="btn btn-primary" type="button" id="primavera-query-button">Ask</button>
+                        </div>
+                        <div id="primavera-query-result" class="mt-4">
+                            <!-- Query results will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="../static/js/primavera_integration.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Primavera visualization
+            PrimaveraVisualization.init({
+                projectSelectorId: 'primavera-project-selector',
+                projectInfoPanelId: 'primavera-project-info',
+                ganttContainerId: 'primavera-gantt-chart',
+                resourceContainerId: 'primavera-resource-chart',
+                progressContainerId: 'primavera-progress-chart',
+                loadingSpinnerId: 'primavera-loading',
+                errorMessageId: 'primavera-error',
+                queryInputId: 'primavera-query-input',
+                queryButtonId: 'primavera-query-button',
+                queryResultId: 'primavera-query-result'
+            });
+            
+            // Connection status
+            fetch('/api/v1/primavera/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('connection-status');
+                    const pathElement = document.getElementById('p6-path');
+                    
+                    if (data.status === 'success') {
+                        if (data.connection === 'active') {
+                            statusElement.innerHTML = '<span class="text-success">✓ Connected to Primavera P6</span>';
+                        } else {
+                            statusElement.innerHTML = '<span class="text-warning">⚠ Connection inactive</span>';
+                        }
+                        
+                        pathElement.innerHTML = `P6 Path: <span class="${data.p6_exists ? 'text-success' : 'text-danger'}">${data.p6_path} ${data.p6_exists ? '(exists)' : '(not found)'}</span>`;
+                    } else {
+                        statusElement.innerHTML = '<span class="text-danger">✗ Error checking connection</span>';
+                        pathElement.innerHTML = `P6 Path: <span class="text-muted">${data.p6_path || 'Unknown'}</span>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking connection:', error);
+                    document.getElementById('connection-status').innerHTML = 
+                        '<span class="text-danger">✗ Error checking connection</span>';
+                });
+            
+            // Refresh connection button
+            document.getElementById('refresh-connection').addEventListener('click', function() {
+                location.reload();
+            });
+            
+            // Import data button
+            document.getElementById('import-data').addEventListener('click', function() {
+                const button = this;
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Importing...';
+                
+                fetch('/api/v1/primavera/import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'api',
+                        source: 'user-initiated'
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert(`Import successful! Imported ${data.project_count} projects and ${data.activity_count} activities.`);
+                            // Refresh data
+                            PrimaveraVisualization.refresh();
+                        } else {
+                            alert(`Import failed: ${data.message}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Import error:', error);
+                        alert(`Import error: ${error.message}`);
+                    })
+                    .finally(() => {
+                        button.disabled = false;
+                        button.innerHTML = 'Import Data';
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
